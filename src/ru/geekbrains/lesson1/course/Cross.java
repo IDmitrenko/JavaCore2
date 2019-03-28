@@ -12,6 +12,6 @@ public class Cross extends Obstacle {
 
     @Override
     public void doIt(Participant participant) {
-        participant.run(this.distance);
+        participant.run(distance);
     }
 }
