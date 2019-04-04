@@ -53,15 +53,16 @@ public class Application {
 
     private static int processingArray(String[][] arr) throws MyArraySizeException, MyArrayDataException {
 
-        int size = 4;
-        if (arr.length != size) {
-            throw new MyArraySizeException(size);
+        final int SIZE = 4;
+
+        if (arr.length != SIZE) {
+            throw new MyArraySizeException(SIZE);
         }
 
         int sum = 0;
         for (int i = 0; i < arr.length; i++) {
-            if (arr[i].length != size) {
-                throw new MyArraySizeException(size);
+            if (arr[i].length != SIZE) {
+                throw new MyArraySizeException(SIZE);
             }
             for (int j = 0; j < arr[i].length; j++) {
                 try {
