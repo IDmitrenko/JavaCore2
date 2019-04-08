@@ -13,7 +13,7 @@ public class PhoneBook {
         phoneBook = new HashMap<>();
     }
 
-    public void addPhoneNumber(String surname, String phoneNumber) {
+    public void addPhoneName(String surname, String phoneNumber) {
         ContactList contactlist;
         String key = surname.toUpperCase();
         if (phoneBook.containsKey(key)) {
