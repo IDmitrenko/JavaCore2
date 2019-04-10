@@ -1,7 +1,7 @@
 package ru.geekbrains.lesson2.DZ2orig;
 
-import ru.geekbrains.lesson2.exceptions.MyArrayDataException;
-import ru.geekbrains.lesson2.exceptions.MyArraySizeException;
+import ru.geekbrains.lesson2.DZ2orig.exceptions.MyArrayDataException;
+import ru.geekbrains.lesson2.DZ2orig.exceptions.MyArraySizeException;
 
 public class Homework {
 

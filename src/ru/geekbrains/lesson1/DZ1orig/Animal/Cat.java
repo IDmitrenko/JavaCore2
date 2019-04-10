@@ -1,6 +1,6 @@
 package ru.geekbrains.lesson1.DZ1orig.Animal;
 
-import ru.geekbrains.lesson1.Participant;
+import ru.geekbrains.lesson1.DZ1orig.Participant;
 import ru.geekbrains.lesson1.enums.Color;
 
 public class Cat extends Animal implements Participant {
