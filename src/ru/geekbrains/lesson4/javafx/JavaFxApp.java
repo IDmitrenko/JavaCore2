@@ -26,7 +26,10 @@ public class JavaFxApp extends Application {
         ctrl.setPrimaryStage(primaryStage);
 
         primaryStage.setTitle("Network Chat");
-        primaryStage.setScene(new Scene(root));
+        Scene scene = new Scene(root);
+        // как установить стиль из кода
+        scene.getStylesheets().add(getClass().getResource("/css/dark-theme.css").toExternalForm());
+        primaryStage.setScene(scene);
         primaryStage.setMinHeight(450);
         primaryStage.setMinWidth(600);
         primaryStage.show();

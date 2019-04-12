@@ -1,11 +1,27 @@
 package ru.geekbrains.lesson4.swing;
 
+import ru.geekbrains.lesson4.TextMessage;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class MainWindow extends JFrame {
+
+    private final JList<TextMessage> messagesList;
+
+    private final DefaultListModel<TextMessage> messageListModel;
+
+    private final TextMessageCellRenderer messageCellRenderer;
+
+    private final JScrollPane scroll;
+
+    private final JPanel sendMessagePanel;
+
+    private final JButton sendButton;
+
+    private final JTextField messageField;
 
     public MainWindow() {
         setTitle("Application");
@@ -14,27 +30,33 @@ public class MainWindow extends JFrame {
 
         setLayout(new BorderLayout());
 
-        JTextArea messagesArea = new JTextArea();
-        messagesArea.setLineWrap(true);
-        messagesArea.setWrapStyleWord(true);
+        messagesList = new JList<>();
+        messageListModel = new DefaultListModel<>();
+        messageCellRenderer = new TextMessageCellRenderer();
+        messagesList.setModel(messageListModel);
+        messagesList.setCellRenderer(messageCellRenderer);
 
-        JScrollPane scroll = new JScrollPane(messagesArea,
+        scroll = new JScrollPane(messagesList,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         add(scroll, BorderLayout.CENTER);
 
-        JPanel sendMessagePanel = new JPanel();
+        sendMessagePanel = new JPanel();
         sendMessagePanel.setLayout(new BorderLayout());
-        JButton sendButton = new JButton("Отправить");
+        sendButton = new JButton("Отправить");
         sendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(MainWindow.this,
-                        "Message", "Title", JOptionPane.INFORMATION_MESSAGE);
+                String text = messageField.getText();
+                if (text != null && !text.trim().isEmpty()) {
+                    TextMessage msg = new TextMessage("Вы", text);
+                    messageListModel.add(messageListModel.size(), msg);
+                    messageField.setText(null);
+                }
             }
         });
         sendMessagePanel.add(sendButton, BorderLayout.EAST);
-        JTextField messageField = new JTextField();
+        messageField = new JTextField();
         sendMessagePanel.add(messageField, BorderLayout.CENTER);
 
         add(sendMessagePanel, BorderLayout.SOUTH);
