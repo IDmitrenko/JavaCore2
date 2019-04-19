@@ -39,7 +39,8 @@ public class EchoServer {
                 }
             }).start();
 
-            while(socket.isConnected()) {
+//            while(socket.isConnected()) {
+            while(!socket.isClosed()) {
                 System.out.println("Введите сообщение > ");
                 try {
                     while (true) {
