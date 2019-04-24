@@ -33,8 +33,9 @@ public class ClientHandler {
 
                         // TODO проверить является ли msg сообщением для пользователя
                         // TODO если да, то переслать это сообщение пользователю
-                        String userTo = "";
-                        String message = "";
+                        String[] arr = msg.split(" ", 3);
+                        String userTo = arr[1];
+                        String message = arr[2];
                         sendMessage(userTo, message);
                         chatServer.sendMessage(userTo, login, message);
                     } catch (IOException e) {
