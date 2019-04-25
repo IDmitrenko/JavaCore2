@@ -36,8 +36,10 @@ public class ClientHandler {
                         String[] arr = msg.split(" ", 3);
                         String userTo = arr[1];
                         String message = arr[2];
-                        sendMessage(userTo, message);
-                        chatServer.sendMessage(userTo, login, message);
+                        if (login.equals(userTo)) {
+                            sendMessage(userTo, message);
+                            chatServer.sendMessage(userTo, login, message);
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                         break;

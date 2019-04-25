@@ -41,7 +41,7 @@ public class Network {
                         String userFrom = arr[1];
                         String text = arr[2];
 
-                        if (!login.equals(userFrom)) {
+                        if (login.equals(userFrom)) {
                             TextMessage textMessage = new TextMessage(userFrom, login, text);
                             messageReciever.submitMessage(textMessage);
                         }
