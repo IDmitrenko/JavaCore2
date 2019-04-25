@@ -35,14 +35,14 @@ public class Network {
                     try {
                         String msg = in.readUTF();
 
-                        // TODO проверить, пришло ли в строке text сообщение
-                        // TODO определить текст и отправителя
+                        // проверить, пришло ли в строке text сообщение
+                        // определить текст и отправителя
                         String[] arr = msg.split(" ", 3);
-                        String userFrom = arr[1];
+                        String userTo = arr[1];
                         String text = arr[2];
 
-                        if (login.equals(userFrom)) {
-                            TextMessage textMessage = new TextMessage(userFrom, login, text);
+                        if (!login.equals(userTo) && !text.trim().isEmpty()) {
+                            TextMessage textMessage = new TextMessage(login, userTo, text);
                             messageReciever.submitMessage(textMessage);
                         }
 
@@ -73,6 +73,7 @@ public class Network {
     }
 
     public void sendTextMessage(TextMessage message) {
+
         sendMessage(String.format(MESSAGE_SEND_PATTERN, message.getUserTo(), message.getText()));
     }
 
