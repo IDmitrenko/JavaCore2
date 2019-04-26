@@ -72,9 +72,15 @@ public class ChatServer {
         return new User(authParts[1], authParts[2]);
     }
 
-    public void sendMessage(String userTo, String userFrom, String msg) {
+    public void sendMessage(String userTo, String userFrom, String msg) throws IOException{
         ClientHandler userToClientHandler = clientHandlerMap.get(userTo);
-        // TODO убедиться, что userToClientHandler существует и отправить сообщение
-        // TODO для отправки сообщения нужно вызвать метод userToClientHandler.sendMessage()
+
+        // убедиться, что userToClientHandler существует и отправить сообщение
+        // для отправки сообщения нужно вызвать метод userToClientHandler.sendMessage()
+        if (userToClientHandler != null) {
+            userToClientHandler.sendMessage(userFrom, msg);
+        } else {
+            System.out.printf("Пользователь %s не найден. Сообщение от %s игнорируется!%n", userTo, userFrom);
+        }
     }
 }

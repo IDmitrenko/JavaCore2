@@ -33,13 +33,20 @@ public class Network {
             public void run() {
                 while (true) {
                     try {
-                        String text = in.readUTF();
+                        String msg = in.readUTF();
 
-                        // TODO проверить, пришло ли в строке text сообщение
-                        // TODO определить текст и отправителя
-                        TextMessage textMessage = new TextMessage("", login, "");
-                        messageReciever.submitMessage(textMessage);
+                        // проверить, пришло ли в строке text сообщение
+                        // определить текст и отправителя
+                        String[] arr = msg.split(" ", 3);
+                        if (arr[0].equals(MESSAGE_SEND_PATTERN.substring(0, 2))) {
+                            String userTo = arr[1];
+                            String text = arr[2];
 
+                            if (!login.equals(userTo) && !text.trim().isEmpty()) {
+                                TextMessage textMessage = new TextMessage(userTo, login, text);
+                                messageReciever.submitMessage(textMessage);
+                            }
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                         if (socket.isClosed()) {
@@ -67,6 +74,7 @@ public class Network {
     }
 
     public void sendTextMessage(TextMessage message) {
+
         sendMessage(String.format(MESSAGE_SEND_PATTERN, message.getUserTo(), message.getText()));
     }
 

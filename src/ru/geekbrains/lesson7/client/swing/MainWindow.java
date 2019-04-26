@@ -26,11 +26,13 @@ public class MainWindow extends JFrame implements MessageReciever {
 
     private final JTextField messageField;
 
+    private final JTextField recipient;
+
     private final Network network;
 
     public MainWindow() {
-        setTitle("Application");
-        setBounds(200,200, 500, 500);
+        setTitle("Сетевой чат GeekBrains");
+        setBounds(200,200, 600, 600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         setLayout(new BorderLayout());
@@ -48,26 +50,36 @@ public class MainWindow extends JFrame implements MessageReciever {
 
         sendMessagePanel = new JPanel();
         sendMessagePanel.setLayout(new BorderLayout());
+        recipient = new JTextField(7);
+        sendMessagePanel.add(recipient, BorderLayout.WEST);
         sendButton = new JButton("Отправить");
-        sendButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String text = messageField.getText();
-                if (text != null && !text.trim().isEmpty()) {
-                    TextMessage msg = new TextMessage(network.getLogin(), "ivan", text);
-                    messageListModel.add(messageListModel.size(), msg);
-                    messageField.setText(null);
-
-                    // TODO реализовать проверку, что сообщение не пустое
-                    network.sendTextMessage(msg);
-                }
-            }
-        });
         sendMessagePanel.add(sendButton, BorderLayout.EAST);
         messageField = new JTextField();
         sendMessagePanel.add(messageField, BorderLayout.CENTER);
 
+        sendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                myListener(messageField, recipient, messageListModel);
+            }
+        });
+
+        messageField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                myListener(messageField,recipient, messageListModel);
+            }
+        });
+
+        recipient.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                myListener(messageField, recipient, messageListModel);
+            }
+        });
+
         add(sendMessagePanel, BorderLayout.SOUTH);
+
         setVisible(true);
 
         this.network = new Network("localhost", 7777, this);
@@ -78,6 +90,8 @@ public class MainWindow extends JFrame implements MessageReciever {
         if (!loginDialog.isConnected()) {
             System.exit(0);
         }
+
+        setTitle("Сетевой чат GeekBrains. Пользователь " + network.getLogin());
     }
 
     @Override
@@ -89,5 +103,37 @@ public class MainWindow extends JFrame implements MessageReciever {
                 messageList.ensureIndexIsVisible(messageListModel.size() - 1);
             }
         });
+    }
+
+    private void myListener(JTextField messageField, JTextField recipient, DefaultListModel messageListModel) {
+        String text = messageField.getText();
+        String adressee = recipient.getText();
+        if (text == null || text.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(MainWindow.this,
+                    "Пустое сообщение не отправляется!",
+                    "Отправка сообщения.",
+                    JOptionPane.ERROR_MESSAGE);
+            messageField.setText("");
+            messageField.requestFocus();
+            return;
+        }
+
+        if (adressee == null || adressee.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(MainWindow.this,
+                    "Отсутствует адрес получателя!",
+                    "Отправка сообщения.",
+                    JOptionPane.ERROR_MESSAGE);
+            recipient.setText("");
+            recipient.requestFocus();
+            return;
+        }
+
+        TextMessage msg = new TextMessage(network.getLogin(), adressee, text);
+        messageListModel.add(messageListModel.size(), msg);
+        messageField.setText(null);
+        messageField.requestFocus();
+
+        network.sendTextMessage(msg);
+
     }
 }

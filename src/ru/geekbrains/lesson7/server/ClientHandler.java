@@ -7,6 +7,22 @@ import java.net.Socket;
 
 import static ru.geekbrains.lesson7.client.MessagePatterns.MESSAGE_SEND_PATTERN;
 
+/*
+ClientHandler это класс, который ответственен за обработку одного из подключившихся клиентов
+
+При создании этого класса мы передаем в него имя пользователя и сокет через который
+осуществляется взаимодействие с клиентским приложением
+
+Метод sendMessage в этом классе отправляет сообщение на клиент, данного обработчика
+
+Алгоритм работы примерно такой
+1. Клиент отправил сообщение.
+2. Это сообщение считано в потоке соответствующего ClientHandler
+3. Определяем из пришедшей команды, кто адресат сообщения
+4. Вызываем метод sendMessage() сервера
+5. Сервер находит ClientHandler адресата и вызывает его метод sendMessage чтобы отправить сообщение адресату
+*/
+
 public class ClientHandler {
 
     private final String login;
@@ -31,12 +47,17 @@ public class ClientHandler {
                         String msg = inp.readUTF();
                         System.out.printf("Message from user %s: %s%n", login, msg);
 
-                        // TODO проверить является ли msg сообщением для пользователя
-                        // TODO если да, то переслать это сообщение пользователю
-                        String userTo = "";
-                        String message = "";
-                        sendMessage(userTo, message);
-                        chatServer.sendMessage(userTo, login, message);
+                        // проверить является ли msg сообщением для пользователя
+                        // если да, то переслать это сообщение пользователю
+                        String[] arr = msg.split(" ", 3);
+                        if (arr[0].equals(MESSAGE_SEND_PATTERN.substring(0, 2))) {
+                            String userTo = arr[1];
+                            String message = arr[2];
+                            if (!message.trim().isEmpty()) {
+                                sendMessage(login, message);
+                                chatServer.sendMessage(userTo, login, message);
+                            }
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                         break;
