@@ -53,7 +53,7 @@ public class ClientHandler {
                         if (arr[0].equals(MESSAGE_SEND_PATTERN.substring(0, 2))) {
                             String userTo = arr[1];
                             String message = arr[2];
-                            if (!login.equals(userTo) && !message.trim().isEmpty()) {
+                            if (!message.trim().isEmpty()) {
                                 sendMessage(login, message);
                                 chatServer.sendMessage(userTo, login, message);
                             }

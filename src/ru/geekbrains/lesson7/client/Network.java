@@ -38,14 +38,15 @@ public class Network {
                         // проверить, пришло ли в строке text сообщение
                         // определить текст и отправителя
                         String[] arr = msg.split(" ", 3);
-                        String userTo = arr[1];
-                        String text = arr[2];
+                        if (arr[0].equals(MESSAGE_SEND_PATTERN.substring(0, 2))) {
+                            String userTo = arr[1];
+                            String text = arr[2];
 
-                        if (!login.equals(userTo) && !text.trim().isEmpty()) {
-                            TextMessage textMessage = new TextMessage(login, userTo, text);
-                            messageReciever.submitMessage(textMessage);
+                            if (!login.equals(userTo) && !text.trim().isEmpty()) {
+                                TextMessage textMessage = new TextMessage(userTo, login, text);
+                                messageReciever.submitMessage(textMessage);
+                            }
                         }
-
                     } catch (IOException e) {
                         e.printStackTrace();
                         if (socket.isClosed()) {
