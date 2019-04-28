@@ -2,6 +2,7 @@ package ru.geekbrains.lesson7.server;
 
 
 import ru.geekbrains.lesson7.client.AuthException;
+import ru.geekbrains.lesson7.client.TextMessage;
 import ru.geekbrains.lesson7.server.auth.AuthService;
 import ru.geekbrains.lesson7.server.auth.AuthServiceImpl;
 
@@ -10,9 +11,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
+import static ru.geekbrains.lesson7.client.MessagePatterns.AUTH_FAIL_RESPONSE;
+import static ru.geekbrains.lesson7.client.MessagePatterns.AUTH_SUCCESS_RESPONSE;
+import static ru.geekbrains.lesson7.client.MessagePatterns.LIST_USER;
 
 public class ChatServer {
 
@@ -40,20 +43,20 @@ public class ChatServer {
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 } catch (AuthException ex) {
-                    out.writeUTF("/auth fails");
+                    out.writeUTF(AUTH_FAIL_RESPONSE);
                     out.flush();
                     socket.close();
                 }
                 if (user != null && authService.authUser(user)) {
                     System.out.printf("User %s authorized successful!%n", user.getLogin());
                     clientHandlerMap.put(user.getLogin(), new ClientHandler(user.getLogin(), socket, this));
-                    out.writeUTF("/auth successful");
+                    out.writeUTF(AUTH_SUCCESS_RESPONSE);
                     out.flush();
                 } else {
                     if (user != null) {
                         System.out.printf("Wrong authorization for user %s%n", user.getLogin());
                     }
-                    out.writeUTF("/auth fails");
+                    out.writeUTF(AUTH_FAIL_RESPONSE);
                     out.flush();
                     socket.close();
                 }
@@ -72,15 +75,49 @@ public class ChatServer {
         return new User(authParts[1], authParts[2]);
     }
 
-    public void sendMessage(String userTo, String userFrom, String msg) throws IOException{
-        ClientHandler userToClientHandler = clientHandlerMap.get(userTo);
+    private void sendUserConnectedMessage(String login) throws IOException {
+        for (ClientHandler clientHandler : clientHandlerMap.values()) {
+            if (!clientHandler.getLogin().equals(login)) {
+                System.out.printf("Sending connect notification to %s about %s%n", clientHandler.getLogin(), login);
+                clientHandler.sendConnectedMessage(login);
+            }
+        }
+    }
 
+
+    public void sendMessage(TextMessage msg) throws IOException{
+        ClientHandler userToClientHandler = clientHandlerMap.get(msg.getUserTo());
         // убедиться, что userToClientHandler существует и отправить сообщение
         // для отправки сообщения нужно вызвать метод userToClientHandler.sendMessage()
         if (userToClientHandler != null) {
-            userToClientHandler.sendMessage(userFrom, msg);
+            userToClientHandler.sendMessage(msg.getUserFrom(), msg.getText());
         } else {
-            System.out.printf("Пользователь %s не найден. Сообщение от %s игнорируется!%n", userTo, userFrom);
+            System.out.printf("User %s not connected%n", msg.getUserTo());
+        }
+    }
+
+    public void subscribe(String login, Socket socket) throws IOException {
+        // TODO Проверить, подключен ли уже пользователь. Если да, то отправить клиенту ошибку
+        clientHandlerMap.put(login, new ClientHandler(login, socket, this));
+        sendUserConnectedMessage(login);
+    }
+
+    public void unsubscribe(String login) {
+        clientHandlerMap.remove(login);
+        // TODO Отправить всем подключенным пользователям сообщение, что данный пользователь отключился
+    }
+
+    public void sendListUsers(String login) {
+        Set<String> listUsers = clientHandlerMap.keySet();
+        String msg = LIST_USER;
+        for (String user : listUsers) {
+            msg += " " + user;
+        }
+        ClientHandler userToClientHandler = clientHandlerMap.get(login);
+        if (userToClientHandler != null) {
+            userToClientHandler.sendListUsers(login, msg);
+        } else {
+            System.out.printf("");
         }
     }
 }

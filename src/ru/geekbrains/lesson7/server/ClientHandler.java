@@ -1,11 +1,13 @@
 package ru.geekbrains.lesson7.server;
 
+import ru.geekbrains.lesson7.client.TextMessage;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-import static ru.geekbrains.lesson7.client.MessagePatterns.MESSAGE_SEND_PATTERN;
+import static ru.geekbrains.lesson7.client.MessagePatterns.*;
 
 /*
 ClientHandler это класс, который ответственен за обработку одного из подключившихся клиентов
@@ -44,20 +46,25 @@ public class ClientHandler {
             public void run() {
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
-                        String msg = inp.readUTF();
-                        System.out.printf("Message from user %s: %s%n", login, msg);
+                        String text = inp.readUTF();
+                        System.out.printf("Message from user %s: %s%n", login, text);
 
                         // проверить является ли msg сообщением для пользователя
                         // если да, то переслать это сообщение пользователю
-                        String[] arr = msg.split(" ", 3);
-                        if (arr[0].equals(MESSAGE_SEND_PATTERN.substring(0, 2))) {
-                            String userTo = arr[1];
-                            String message = arr[2];
-                            if (!message.trim().isEmpty()) {
-                                sendMessage(login, message);
-                                chatServer.sendMessage(userTo, login, message);
-                            }
+                        System.out.println("New message " + text);
+                        TextMessage msg = parseTextMessageRegx(text, login);
+                        if (msg != null) {
+                            msg.swapUsers();
+                            chatServer.sendMessage(msg);
+                        } else if (text.equals(DISCONNECT)) {
+                            System.out.printf("User %s is disconnected%n", login);
+                            chatServer.unsubscribe(login);
+                            return;
+                        } else if (text.equals(LIST_USER)) {
+                            System.out.printf("I got a request for a list of connected users from %s%n", login);
+                            chatServer.sendListUsers(login);
                         }
+
                     } catch (IOException e) {
                         e.printStackTrace();
                         break;
@@ -73,7 +80,21 @@ public class ClientHandler {
         return login;
     }
 
-    public void sendMessage(String userTo, String msg) throws IOException {
-        out.writeUTF(String.format(MESSAGE_SEND_PATTERN, userTo, msg));
+    public void sendMessage(String userFrom, String msg) throws IOException {
+        if (socket.isConnected()) {
+            out.writeUTF(String.format(MESSAGE_SEND_PATTERN, userFrom, msg));
+        }
+    }
+
+    public void sendConnectedMessage(String login) throws IOException {
+        if (socket.isConnected()) {
+            out.writeUTF(String.format(CONNECTED_SEND, login));
+        }
+    }
+
+    public void sendListUsers(String userTo, String msg) throws IOException {
+        if (socket.isConnected()) {
+            out.writeUTF(String.format(LIST_SEND_PATTERN, userTo, msg));
+        }
     }
 }
