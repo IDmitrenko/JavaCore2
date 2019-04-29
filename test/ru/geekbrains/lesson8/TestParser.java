@@ -6,7 +6,7 @@ import ru.geekbrains.lesson7.client.TextMessage;
 
 import static org.junit.Assert.*;
 import static ru.geekbrains.lesson7.client.MessagePatterns.parseTextMessage;
-import static ru.geekbrains.lesson7.client.MessagePatterns.parseTextMessageRegx;
+import static ru.geekbrains.lesson7.client.MessagePatterns.parseTextMessageRegEx;
 
 /**
  * Unit тесты для различных методов сетевого чата
@@ -26,7 +26,7 @@ public class TestParser {
 
     @Test
     public void testParserRegx() {
-        TextMessage textMessage = parseTextMessageRegx("/w userFrom Example of message", "userTo");
+        TextMessage textMessage = parseTextMessageRegEx("/w userFrom Example of message", "userTo");
 
         assertNotNull(textMessage);
         assertEquals("userFrom", textMessage.getUserFrom());

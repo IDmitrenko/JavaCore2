@@ -12,8 +12,10 @@ public class MessagePatterns {
     public static final String DISCONNECT = "/disconnect";
     public static final String CONNECTED = "/connected";
     public static final String CONNECTED_SEND = CONNECTED + " %s";
+    public static final String DISCONNECT_SEND = DISCONNECT + " %s";
+
     public static final String DISCONNECTED_PREFIX = "/d";
-    public static final String DISCONNECTED_SEND_PATTERN = DISCONNECTED_PREFIX + " %s %s";
+    public static final String DISCONNECTED_SEND_PATTERN = DISCONNECTED_PREFIX + " %s User %s has left the chat";
     public static final Pattern DISCONNECTED_REC_PATTERN = Pattern.compile("^/d (\\w+) (.+)", Pattern.MULTILINE);
 
     public static final String MESSAGE_PREFIX = "/w";
@@ -25,7 +27,7 @@ public class MessagePatterns {
     public static final String LIST_SEND_PATTERN = LIST_USER + " %s";
     public static final Pattern LIST_REC_PATTERN = Pattern.compile("^/l (.+)", Pattern.MULTILINE);
 
-    public static TextMessage parseTextMessageRegx(String text, String userTo) {
+    public static TextMessage parseTextMessageRegEx(String text, String userTo) {
         Matcher matcher = MESSAGE_REC_PATTERN.matcher(text);
         if (matcher.matches()) {
             return new TextMessage(matcher.group(1), userTo,
@@ -36,7 +38,7 @@ public class MessagePatterns {
         }
     }
 
-    public static TextMessage parseDisconnectMessageRegx(String text, String userTo) {
+    public static TextMessage parseDisconnectMessageRegEx(String text, String userTo) {
         Matcher matcher = DISCONNECTED_REC_PATTERN.matcher(text);
         if (matcher.matches()) {
             return new TextMessage(matcher.group(1), userTo,

@@ -36,7 +36,7 @@ public class Network implements Closeable {
                         String text = in.readUTF();
 
                         System.out.println("New message " + text);
-                        TextMessage msg = parseTextMessageRegx(text, login);
+                        TextMessage msg = parseTextMessageRegEx(text, login);
                         if (msg != null) {
                             messageReciever.submitMessage(msg);
                             continue;
@@ -65,7 +65,7 @@ public class Network implements Closeable {
                             continue;
                         }
 
-                        msg = parseDisconnectMessageRegx(text, login);
+                        msg = parseDisconnectMessageRegEx(text, login);
                         if (msg != null) {
                             messageReciever.submitMessage(msg);
                             continue;

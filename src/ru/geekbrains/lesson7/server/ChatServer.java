@@ -114,12 +114,20 @@ public class ChatServer {
         clientHandlerMap.remove(login);
         // 2 Отправить всем подключенным пользователям сообщение, что данный пользователь отключился
         sendUserDisconnectedMessage(login);
+        // удалить пользователя из списка подключенных
+        sendUserDisconnect(login);
     }
 
     private void sendUserDisconnectedMessage(String login) throws IOException {
         for (ClientHandler clientHandler : clientHandlerMap.values()) {
             System.out.printf("Sending disconnect notification to %s about %s%n", clientHandler.getLogin(), login);
-            clientHandler.sendDisconnectedMessage(clientHandler.getLogin(), login);
+            clientHandler.sendDisconnectedMessage(login);
+        }
+    }
+
+    private void sendUserDisconnect(String login) throws IOException{
+        for (ClientHandler clientHandler : clientHandlerMap.values()) {
+            clientHandler.sendUserDisconnect(login);
         }
     }
 

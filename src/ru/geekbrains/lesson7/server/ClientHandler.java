@@ -52,7 +52,7 @@ public class ClientHandler {
                         // проверить является ли msg сообщением для пользователя
                         // если да, то переслать это сообщение пользователю
                         System.out.println("New message " + text);
-                        TextMessage msg = parseTextMessageRegx(text, login);
+                        TextMessage msg = parseTextMessageRegEx(text, login);
                         if (msg != null) {
                             msg.swapUsers();
                             chatServer.sendMessage(msg);
@@ -92,15 +92,21 @@ public class ClientHandler {
         }
     }
 
-    public void sendDisconnectedMessage(String userFrom, String msg) throws IOException{
+    public void sendDisconnectedMessage(String userFrom) throws IOException{
         if (socket.isConnected()) {
-            out.writeUTF(String.format(DISCONNECTED_SEND_PATTERN, userFrom, msg));
+            out.writeUTF(String.format(DISCONNECTED_SEND_PATTERN, userFrom, userFrom));
         }
     }
 
     public void sendListUsers(String msg) throws IOException {
         if (socket.isConnected()) {
             out.writeUTF(String.format(LIST_SEND_PATTERN, msg));
+        }
+    }
+
+    public void sendUserDisconnect(String login) throws IOException{
+        if (socket.isConnected()) {
+            out.writeUTF(String.format(DISCONNECT_SEND, login));
         }
     }
 }
