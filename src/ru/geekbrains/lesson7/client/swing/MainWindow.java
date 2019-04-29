@@ -122,6 +122,19 @@ public class MainWindow extends JFrame implements MessageReciever {
     }
 
     @Override
+    public void submitUserList(String userList) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                String[] arr = userList.split(" ");
+                for (int i = 0; i < arr.length; i++) {
+                    userConnected(arr[i]);
+                }
+            }
+        });
+    }
+
+    @Override
     public void userConnected(String login) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override

@@ -7,4 +7,6 @@ public interface MessageReciever {
     void userConnected(String login);
 
     void userDisconnected(String login);
+
+    void submitUserList(String userList);
 }

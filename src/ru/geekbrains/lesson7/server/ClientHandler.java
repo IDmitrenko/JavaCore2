@@ -62,7 +62,7 @@ public class ClientHandler {
                             return;
                         } else if (text.equals(LIST_USER)) {
                             System.out.printf("I got a request for a list of connected users from %s%n", login);
-                            chatServer.sendListUsers(login);
+                            chatServer.sendListUsers();
                         }
 
                     } catch (IOException e) {
@@ -92,9 +92,15 @@ public class ClientHandler {
         }
     }
 
-    public void sendListUsers(String userTo, String msg) throws IOException {
+    public void sendDisconnectedMessage(String userFrom, String msg) throws IOException{
         if (socket.isConnected()) {
-            out.writeUTF(String.format(LIST_SEND_PATTERN, userTo, msg));
+            out.writeUTF(String.format(DISCONNECTED_SEND_PATTERN, userFrom, msg));
+        }
+    }
+
+    public void sendListUsers(String msg) throws IOException {
+        if (socket.isConnected()) {
+            out.writeUTF(String.format(LIST_SEND_PATTERN, msg));
         }
     }
 }

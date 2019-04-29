@@ -5,8 +5,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Collections;
-import java.util.List;
 
 import static ru.geekbrains.lesson7.client.MessagePatterns.*;
 
@@ -44,14 +42,34 @@ public class Network implements Closeable {
                             continue;
                         }
 
-                        System.out.println("Connection message " + text);
-                        String login = parseConnectedMessage(text);
-                        if (login != null) {
-                            messageReciever.userConnected(login);
+                        String userList = parseUserList(text);
+                        if (userList != null) {
+                            System.out.println("List of connected users " + text);
+                            messageReciever.submitUserList(userList);
                             continue;
                         }
 
-                        // TODO добавить обработку отключения пользователя
+                        String login = parseConnectedMessage(text);
+                        if (login != null) {
+                            System.out.println("Connection message " + text);
+//                            messageReciever.userConnected(login);
+                            requestConnectedUserList();
+                            continue;
+                        }
+
+                        // 3 TODO добавить обработку отключения пользователя
+                        login = parseDisconnectedMessage(text);
+                        if (login != null) {
+                            System.out.println("Disconnection message " + text);
+                            messageReciever.userDisconnected(login);
+                            continue;
+                        }
+
+                        msg = parseDisconnectMessageRegx(text, login);
+                        if (msg != null) {
+                            messageReciever.submitMessage(msg);
+                            continue;
+                        }
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -97,13 +115,11 @@ public class Network implements Closeable {
         return login;
     }
 
-    public List<String> requestConnectedUserList() {
-        // TODO реализовать запрос с сервера списка всех подключенных пользователей
+    public void requestConnectedUserList() {
+        //1 TODO реализовать запрос с сервера списка всех подключенных пользователей
         sendMessage(LIST_USER);
 
-        return Collections.emptyList();
     }
-
 
     @Override
     public void close() {
