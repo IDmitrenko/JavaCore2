@@ -8,14 +8,16 @@ public class MessagePatterns {
     public static final String AUTH_PATTERN = "/auth %s %s";
     public static final String AUTH_SUCCESS_RESPONSE = "/auth successful";
     public static final String AUTH_FAIL_RESPONSE = "/auth fail";
+    public static final String AUTH_ALREADY_RESPONSE = "auth already";
 
     public static final String DISCONNECT = "/disconnect";
-    public static final String CONNECTED = "/connected";
-    public static final String CONNECTED_SEND = CONNECTED + " %s";
-    public static final String DISCONNECT_SEND = DISCONNECT + " %s";
+
+    public static final String CONNECTED_PREFIX = "/c";
+    public static final String CONNECTED_SEND_PATTERN = CONNECTED_PREFIX + " %s connected to chat";
+    public static final Pattern CONNECTED_REC_PATTERN = Pattern.compile("^/c (\\w+) (.+)", Pattern.MULTILINE);
 
     public static final String DISCONNECTED_PREFIX = "/d";
-    public static final String DISCONNECTED_SEND_PATTERN = DISCONNECTED_PREFIX + " %s User %s has left the chat";
+    public static final String DISCONNECTED_SEND_PATTERN = DISCONNECTED_PREFIX + " %s has left the chat";
     public static final Pattern DISCONNECTED_REC_PATTERN = Pattern.compile("^/d (\\w+) (.+)", Pattern.MULTILINE);
 
     public static final String MESSAGE_PREFIX = "/w";
@@ -59,10 +61,11 @@ public class MessagePatterns {
         }
     }
 
-    public static TextMessage parseTextMessage(String text, String userTo) {
-        String[] parts = text.split(" ", 3);
-        if (parts.length == 3 && parts[0].equals(MESSAGE_PREFIX)) {
-            return new TextMessage(parts[1], userTo, parts[2]);
+    public static TextMessage parseConnectMessageRegEx(String text, String userTo) {
+        Matcher matcher = CONNECTED_REC_PATTERN.matcher(text);
+        if (matcher.matches()) {
+            return new TextMessage(matcher.group(1), userTo,
+                    matcher.group(2));
         } else {
             System.out.println("Unknown message pattern: " + text);
             return null;
@@ -70,9 +73,9 @@ public class MessagePatterns {
     }
 
     public static String parseConnectedMessage(String text) {
-        String[] parts = text.split(" ");
-        if (parts.length == 2 && parts[0].equals(CONNECTED)) {
-            return parts[1];
+        Matcher matcher = CONNECTED_REC_PATTERN.matcher(text);
+        if (matcher.matches()) {
+            return matcher.group(1);
         } else {
             System.out.println("Unknown message pattern: " + text);
             return null;
@@ -80,9 +83,9 @@ public class MessagePatterns {
     }
 
     public static String parseDisconnectedMessage(String text) {
-        String[] parts = text.split(" ");
-        if (parts.length == 2 && parts[0].equals(DISCONNECT)) {
-            return parts[1];
+        Matcher matcher = DISCONNECTED_REC_PATTERN.matcher(text);
+        if (matcher.matches()) {
+            return matcher.group(1);
         } else {
             System.out.println("Unknown message pattern: " + text);
             return null;

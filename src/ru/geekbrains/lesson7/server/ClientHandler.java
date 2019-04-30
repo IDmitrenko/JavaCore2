@@ -86,15 +86,9 @@ public class ClientHandler {
         }
     }
 
-    public void sendConnectedMessage(String login) throws IOException {
+    public void sendUserConnected(String login) throws IOException {
         if (socket.isConnected()) {
-            out.writeUTF(String.format(CONNECTED_SEND, login));
-        }
-    }
-
-    public void sendDisconnectedMessage(String userFrom) throws IOException{
-        if (socket.isConnected()) {
-            out.writeUTF(String.format(DISCONNECTED_SEND_PATTERN, userFrom, userFrom));
+            out.writeUTF(String.format(CONNECTED_SEND_PATTERN, login));
         }
     }
 
@@ -104,9 +98,9 @@ public class ClientHandler {
         }
     }
 
-    public void sendUserDisconnect(String login) throws IOException{
+    public void sendUserDisconnect(String userFrom) throws IOException{
         if (socket.isConnected()) {
-            out.writeUTF(String.format(DISCONNECT_SEND, login));
+            out.writeUTF(String.format(DISCONNECTED_SEND_PATTERN, userFrom));
         }
     }
 }

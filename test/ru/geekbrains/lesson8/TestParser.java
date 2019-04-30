@@ -5,8 +5,7 @@ import ru.geekbrains.lesson7.client.TextMessage;
 
 
 import static org.junit.Assert.*;
-import static ru.geekbrains.lesson7.client.MessagePatterns.parseTextMessage;
-import static ru.geekbrains.lesson7.client.MessagePatterns.parseTextMessageRegEx;
+import static ru.geekbrains.lesson7.client.MessagePatterns.*;
 
 /**
  * Unit тесты для различных методов сетевого чата
@@ -15,17 +14,7 @@ import static ru.geekbrains.lesson7.client.MessagePatterns.parseTextMessageRegEx
 public class TestParser {
 
     @Test
-    public void testParser() {
-        TextMessage textMessage = parseTextMessage("/w userFrom Example of message", "userTo");
-
-        assertNotNull(textMessage);
-        assertEquals("userFrom", textMessage.getUserFrom());
-        assertEquals("Example of message", textMessage.getText());
-        assertEquals("userTo", textMessage.getUserTo());
-    }
-
-    @Test
-    public void testParserRegx() {
+    public void testParserRegEx() {
         TextMessage textMessage = parseTextMessageRegEx("/w userFrom Example of message", "userTo");
 
         assertNotNull(textMessage);
@@ -35,9 +24,47 @@ public class TestParser {
     }
 
     @Test
-    public void testParseConnectedMessage() {
-        // TODO написать тест для метода MessagePattern.ParseConnectedMessage
+    public void testParseConnectMessageRegEx() {
+        TextMessage textMessage = parseConnectMessageRegEx("/c userFrom Connected to chat", "userTo");
+
+        assertNotNull(textMessage);
+        assertEquals("userFrom", textMessage.getUserFrom());
+        assertEquals("Connected to chat", textMessage.getText());
+        assertEquals("userTo", textMessage.getUserTo());
     }
 
-    // TODO написать тесты для новых парсеров, если они будут добавлены при выполнении остальных заданий
+    @Test
+    public void testParseDisconnectMessageRegEx() {
+        TextMessage textMessage = parseDisconnectMessageRegEx("/d userFrom Connected to chat", "userTo");
+
+        assertNotNull(textMessage);
+        assertEquals("userFrom", textMessage.getUserFrom());
+        assertEquals("Connected to chat", textMessage.getText());
+        assertEquals("userTo", textMessage.getUserTo());
+    }
+
+    @Test
+    public void testParseUserList() {
+        String userList = parseUserList("/l ivan petr");
+
+        assertNotNull(userList);
+        assertEquals("ivan petr", userList);
+    }
+
+    @Test
+    public void testParseConnectedMessage() {
+        String user = parseConnectedMessage("/c ivan connected");
+
+        assertNotNull(user);
+        assertEquals("ivan", user);
+    }
+
+    @Test
+    public void testParseDisconnectedMessage() {
+        String user = parseDisconnectedMessage("/d petr disconnect");
+
+        assertNotNull(user);
+        assertEquals("petr", user);
+    }
+
 }

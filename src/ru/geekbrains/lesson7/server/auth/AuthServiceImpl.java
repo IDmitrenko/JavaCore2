@@ -13,6 +13,8 @@ public class AuthServiceImpl implements AuthService {
         users.put("ivan", "123");
         users.put("petr", "345");
         users.put("julia", "789");
+        users.put("igor", "12539");
+        users.put("olga","1966");
     }
 
     @Override

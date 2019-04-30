@@ -6,6 +6,8 @@ import ru.geekbrains.lesson7.client.Network;
 import ru.geekbrains.lesson7.client.TextMessage;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -38,7 +40,7 @@ public class MainWindow extends JFrame implements MessageReciever {
 
     public MainWindow() {
         setTitle("Сетевой чат.");
-        setBounds(200,200, 600, 600);
+        setBounds(200, 200, 600, 600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         setLayout(new BorderLayout());
@@ -62,7 +64,6 @@ public class MainWindow extends JFrame implements MessageReciever {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String text = messageField.getText();
-                // TODO отправлять сообщение пользователю выбранному в списке userList
                 String userTo = userField.getText();
                 if (text != null && !text.trim().isEmpty()) {
                     TextMessage msg = new TextMessage(network.getLogin(), userTo, text);
@@ -84,6 +85,15 @@ public class MainWindow extends JFrame implements MessageReciever {
         userListModel = new DefaultListModel<>();
         userList.setModel(userListModel);
         userList.setPreferredSize(new Dimension(100, 0));
+        userList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                // отправлять сообщение пользователю выбранному в списке userList
+                String userTo = userList.getSelectedValue();
+                if (!network.getLogin().equals(userTo))
+                    userField.setText(userTo);
+            }
+        });
         add(userList, BorderLayout.WEST);
 
         setVisible(true);

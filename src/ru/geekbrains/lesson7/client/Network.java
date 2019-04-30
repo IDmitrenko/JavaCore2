@@ -49,25 +49,26 @@ public class Network implements Closeable {
                             continue;
                         }
 
-                        String login = parseConnectedMessage(text);
-                        if (login != null) {
+                        msg = parseConnectMessageRegEx(text, login);
+                        String nick = parseConnectedMessage(text);
+                        if (msg != null) {
                             System.out.println("Connection message " + text);
-//                            messageReciever.userConnected(login);
-                            requestConnectedUserList();
+                            messageReciever.submitMessage(msg);
+                            if (nick != null) {
+//                                messageReciever.userConnected(nick);
+                                requestConnectedUserList();
+                            }
                             continue;
                         }
 
-                        // 3 TODO добавить обработку отключения пользователя
-                        login = parseDisconnectedMessage(text);
-                        if (login != null) {
-                            System.out.println("Disconnection message " + text);
-                            messageReciever.userDisconnected(login);
-                            continue;
-                        }
-
+                        // добавить обработку отключения пользователя
                         msg = parseDisconnectMessageRegEx(text, login);
+                        nick = parseDisconnectedMessage(text);
                         if (msg != null) {
                             messageReciever.submitMessage(msg);
+                            if (nick != null) {
+                                messageReciever.userDisconnected(nick);
+                            }
                             continue;
                         }
 
@@ -92,6 +93,9 @@ public class Network implements Closeable {
         if (response.equals(AUTH_SUCCESS_RESPONSE)) {
             this.login = login;
             receiverThread.start();
+        } else if (response.equals(AUTH_ALREADY_RESPONSE)) {
+            TextMessage msg = new TextMessage(login, login, "The user is already connected");
+            messageReciever.submitMessage(msg);
         } else {
             throw new AuthException();
         }
@@ -116,7 +120,7 @@ public class Network implements Closeable {
     }
 
     public void requestConnectedUserList() {
-        //1 TODO реализовать запрос с сервера списка всех подключенных пользователей
+        // реализовать запрос с сервера списка всех подключенных пользователей
         sendMessage(LIST_USER);
 
     }

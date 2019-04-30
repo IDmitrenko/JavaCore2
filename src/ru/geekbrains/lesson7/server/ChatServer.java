@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static ru.geekbrains.lesson7.client.MessagePatterns.AUTH_ALREADY_RESPONSE;
 import static ru.geekbrains.lesson7.client.MessagePatterns.AUTH_FAIL_RESPONSE;
 import static ru.geekbrains.lesson7.client.MessagePatterns.AUTH_SUCCESS_RESPONSE;
 
@@ -51,9 +52,15 @@ public class ChatServer {
                 }
                 if (user != null && authService.authUser(user)) {
                     System.out.printf("User %s authorized successful!%n", user.getLogin());
-                    subscribe(user.getLogin(), socket);
-                    out.writeUTF(AUTH_SUCCESS_RESPONSE);
-                    out.flush();
+                    boolean isConnect = subscribe(user.getLogin(), socket);
+                    if (isConnect) {
+                        out.writeUTF(AUTH_SUCCESS_RESPONSE);
+                        out.flush();
+                    } else {
+                        out.writeUTF(AUTH_ALREADY_RESPONSE);
+                        out.flush();
+                        socket.close();
+                    }
                 } else {
                     if (user != null) {
                         System.out.printf("Wrong authorization for user %s%n", user.getLogin());
@@ -77,16 +84,6 @@ public class ChatServer {
         return new User(authParts[1], authParts[2]);
     }
 
-    private void sendUserConnectedMessage(String login) throws IOException {
-        for (ClientHandler clientHandler : clientHandlerMap.values()) {
-            if (!clientHandler.getLogin().equals(login)) {
-                System.out.printf("Sending connect notification to %s about %s%n", clientHandler.getLogin(), login);
-                clientHandler.sendConnectedMessage(login);
-            }
-        }
-    }
-
-
     public void sendMessage(TextMessage msg) throws IOException{
         ClientHandler userToClientHandler = clientHandlerMap.get(msg.getUserTo());
         // убедиться, что userToClientHandler существует и отправить сообщение
@@ -98,35 +95,38 @@ public class ChatServer {
         }
     }
 
-    public void subscribe(String login, Socket socket) throws IOException {
+    public boolean subscribe(String login, Socket socket) throws IOException {
         // Проверить, подключен ли уже пользователь. Если да, то отправить клиенту ошибку
         for (ClientHandler clientHandler : clientHandlerMap.values()) {
             if (clientHandler.getLogin().equals(login)) {
                 System.out.printf("The user %s is already connected%n", login);
-                return;
+                return false;
             }
         }
         clientHandlerMap.put(login, new ClientHandler(login, socket, this));
-        sendUserConnectedMessage(login);
+        sendUserConnected(login);
+        return true;
+    }
+
+    private void sendUserConnected(String login) throws IOException {
+        for (ClientHandler clientHandler : clientHandlerMap.values()) {
+            if (!clientHandler.getLogin().equals(login)) {
+                System.out.printf("Sending connect notification to %s about %s%n", clientHandler.getLogin(), login);
+                clientHandler.sendUserConnected(login);
+            }
+        }
     }
 
     public void unsubscribe(String login) throws IOException {
         clientHandlerMap.remove(login);
-        // 2 Отправить всем подключенным пользователям сообщение, что данный пользователь отключился
-        sendUserDisconnectedMessage(login);
+        // Отправить всем подключенным пользователям сообщение, что данный пользователь отключился
         // удалить пользователя из списка подключенных
         sendUserDisconnect(login);
     }
 
-    private void sendUserDisconnectedMessage(String login) throws IOException {
-        for (ClientHandler clientHandler : clientHandlerMap.values()) {
-            System.out.printf("Sending disconnect notification to %s about %s%n", clientHandler.getLogin(), login);
-            clientHandler.sendDisconnectedMessage(login);
-        }
-    }
-
     private void sendUserDisconnect(String login) throws IOException{
         for (ClientHandler clientHandler : clientHandlerMap.values()) {
+            System.out.printf("Sending disconnect notification to %s about %s%n", clientHandler.getLogin(), login);
             clientHandler.sendUserDisconnect(login);
         }
     }
