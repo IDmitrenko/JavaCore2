@@ -1,15 +1,15 @@
 package ru.geekbrains.lesson7.client;
 
+import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-import static ru.geekbrains.lesson7.client.MessagePatterns.AUTH_PATTERN;
-import static ru.geekbrains.lesson7.client.MessagePatterns.MESSAGE_SEND_PATTERN;
+import static ru.geekbrains.lesson7.client.MessagePatterns.*;
 
 
-public class Network {
+public class Network implements Closeable {
 
     public Socket socket;
     public DataInputStream in;
@@ -31,22 +31,47 @@ public class Network {
         this.receiverThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true) {
+                while (!Thread.currentThread().isInterrupted()) {
                     try {
-                        String msg = in.readUTF();
+                        String text = in.readUTF();
 
-                        // проверить, пришло ли в строке text сообщение
-                        // определить текст и отправителя
-                        String[] arr = msg.split(" ", 3);
-                        if (arr[0].equals(MESSAGE_SEND_PATTERN.substring(0, 2))) {
-                            String userTo = arr[1];
-                            String text = arr[2];
-
-                            if (!login.equals(userTo) && !text.trim().isEmpty()) {
-                                TextMessage textMessage = new TextMessage(userTo, login, text);
-                                messageReciever.submitMessage(textMessage);
-                            }
+                        System.out.println("New message " + text);
+                        TextMessage msg = parseTextMessageRegEx(text, login);
+                        if (msg != null) {
+                            messageReciever.submitMessage(msg);
+                            continue;
                         }
+
+                        String userList = parseUserList(text);
+                        if (userList != null) {
+                            System.out.println("List of connected users " + text);
+                            messageReciever.submitUserList(userList);
+                            continue;
+                        }
+
+                        msg = parseConnectMessageRegEx(text, login);
+                        String nick = parseConnectedMessage(text);
+                        if (msg != null) {
+                            System.out.println("Connection message " + text);
+                            messageReciever.submitMessage(msg);
+                            if (nick != null) {
+//                                messageReciever.userConnected(nick);
+                                requestConnectedUserList();
+                            }
+                            continue;
+                        }
+
+                        // добавить обработку отключения пользователя
+                        msg = parseDisconnectMessageRegEx(text, login);
+                        nick = parseDisconnectedMessage(text);
+                        if (msg != null) {
+                            messageReciever.submitMessage(msg);
+                            if (nick != null) {
+                                messageReciever.userDisconnected(nick);
+                            }
+                            continue;
+                        }
+
                     } catch (IOException e) {
                         e.printStackTrace();
                         if (socket.isClosed()) {
@@ -65,9 +90,12 @@ public class Network {
 
         sendMessage(String.format(AUTH_PATTERN, login, password));
         String response = in.readUTF();
-        if (response.equals("/auth successful")) {
+        if (response.equals(AUTH_SUCCESS_RESPONSE)) {
             this.login = login;
             receiverThread.start();
+        } else if (response.equals(AUTH_ALREADY_RESPONSE)) {
+            TextMessage msg = new TextMessage(login, login, "The user is already connected");
+            messageReciever.submitMessage(msg);
         } else {
             throw new AuthException();
         }
@@ -89,5 +117,17 @@ public class Network {
 
     public String getLogin() {
         return login;
+    }
+
+    public void requestConnectedUserList() {
+        // реализовать запрос с сервера списка всех подключенных пользователей
+        sendMessage(LIST_USER);
+
+    }
+
+    @Override
+    public void close() {
+        this.receiverThread.interrupt();
+        sendMessage(DISCONNECT);
     }
 }

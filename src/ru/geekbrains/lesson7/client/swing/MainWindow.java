@@ -6,9 +6,13 @@ import ru.geekbrains.lesson7.client.Network;
 import ru.geekbrains.lesson7.client.TextMessage;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class MainWindow extends JFrame implements MessageReciever {
 
@@ -26,13 +30,17 @@ public class MainWindow extends JFrame implements MessageReciever {
 
     private final JTextField messageField;
 
-    private final JTextField recipient;
+    private final JTextField userField;
+
+    private final JList<String> userList;
+
+    private final DefaultListModel<String> userListModel;
 
     private final Network network;
 
     public MainWindow() {
-        setTitle("Сетевой чат GeekBrains");
-        setBounds(200,200, 600, 600);
+        setTitle("Сетевой чат.");
+        setBounds(200, 200, 600, 600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         setLayout(new BorderLayout());
@@ -50,35 +58,43 @@ public class MainWindow extends JFrame implements MessageReciever {
 
         sendMessagePanel = new JPanel();
         sendMessagePanel.setLayout(new BorderLayout());
-        recipient = new JTextField(7);
-        sendMessagePanel.add(recipient, BorderLayout.WEST);
-        sendButton = new JButton("Отправить");
-        sendMessagePanel.add(sendButton, BorderLayout.EAST);
-        messageField = new JTextField();
-        sendMessagePanel.add(messageField, BorderLayout.CENTER);
 
+        sendButton = new JButton("Отправить");
         sendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                myListener(messageField, recipient, messageListModel);
+                String text = messageField.getText();
+                String userTo = userField.getText();
+                if (text != null && !text.trim().isEmpty()) {
+                    TextMessage msg = new TextMessage(network.getLogin(), userTo, text);
+                    messageListModel.add(messageListModel.size(), msg);
+                    messageField.setText(null);
+                    network.sendTextMessage(msg);
+                }
             }
         });
-
-        messageField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                myListener(messageField,recipient, messageListModel);
-            }
-        });
-
-        recipient.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                myListener(messageField, recipient, messageListModel);
-            }
-        });
+        sendMessagePanel.add(sendButton, BorderLayout.EAST);
+        messageField = new JTextField();
+        sendMessagePanel.add(messageField, BorderLayout.CENTER);
+        userField = new JTextField("", 7);
+        sendMessagePanel.add(userField, BorderLayout.WEST);
 
         add(sendMessagePanel, BorderLayout.SOUTH);
+
+        userList = new JList<>();
+        userListModel = new DefaultListModel<>();
+        userList.setModel(userListModel);
+        userList.setPreferredSize(new Dimension(100, 0));
+        userList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                // отправлять сообщение пользователю выбранному в списке userList
+                String userTo = userList.getSelectedValue();
+                if (!network.getLogin().equals(userTo))
+                    userField.setText(userTo);
+            }
+        });
+        add(userList, BorderLayout.WEST);
 
         setVisible(true);
 
@@ -91,7 +107,17 @@ public class MainWindow extends JFrame implements MessageReciever {
             System.exit(0);
         }
 
-        setTitle("Сетевой чат GeekBrains. Пользователь " + network.getLogin());
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (network != null) {
+                    network.close();
+                }
+                super.windowClosing(e);
+            }
+        });
+
+        setTitle("Сетевой чат. Пользователь " + network.getLogin());
     }
 
     @Override
@@ -105,35 +131,43 @@ public class MainWindow extends JFrame implements MessageReciever {
         });
     }
 
-    private void myListener(JTextField messageField, JTextField recipient, DefaultListModel messageListModel) {
-        String text = messageField.getText();
-        String adressee = recipient.getText();
-        if (text == null || text.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(MainWindow.this,
-                    "Пустое сообщение не отправляется!",
-                    "Отправка сообщения.",
-                    JOptionPane.ERROR_MESSAGE);
-            messageField.setText("");
-            messageField.requestFocus();
-            return;
-        }
-
-        if (adressee == null || adressee.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(MainWindow.this,
-                    "Отсутствует адрес получателя!",
-                    "Отправка сообщения.",
-                    JOptionPane.ERROR_MESSAGE);
-            recipient.setText("");
-            recipient.requestFocus();
-            return;
-        }
-
-        TextMessage msg = new TextMessage(network.getLogin(), adressee, text);
-        messageListModel.add(messageListModel.size(), msg);
-        messageField.setText(null);
-        messageField.requestFocus();
-
-        network.sendTextMessage(msg);
-
+    @Override
+    public void submitUserList(String userList) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                String[] arr = userList.split(" ");
+                for (int i = 0; i < arr.length; i++) {
+                    userConnected(arr[i]);
+                }
+            }
+        });
     }
+
+    @Override
+    public void userConnected(String login) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                int ix = userListModel.indexOf(login);
+                if (ix == -1) {
+                    userListModel.add(userListModel.size(), login);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void userDisconnected(String login) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                int ix = userListModel.indexOf(login);
+                if (ix >= 0) {
+                    userListModel.remove(ix);
+                }
+            }
+        });
+    }
+
 }

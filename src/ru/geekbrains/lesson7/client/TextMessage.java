@@ -42,4 +42,15 @@ public class TextMessage {
     public LocalDateTime getCreated() {
         return created;
     }
+
+    /**
+     * Это не очень хорошее решение проблемы с использованием класса как на клиенте
+     * так и на сервере, но ничего лучше пока не придумал
+     */
+    public void swapUsers() {
+        String tmp = userFrom;
+        userFrom = userTo;
+        userTo = tmp;
+    }
+
 }
